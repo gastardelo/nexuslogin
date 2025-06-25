@@ -1,72 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login Nexus</title>
+  <meta charset="UTF-8">
+  <title>Autenticação Nexus</title>
   <style>
     body {
       font-family: sans-serif;
-      background-color: #f5f5f5;
+      background: #f2f2f2;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
       height: 100vh;
     }
-    .login-box {
+    form {
       background: white;
-      padding: 2rem;
-      border-radius: 10px;
+      padding: 30px;
+      border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    input[type="text"], input[type="submit"] {
+    input, button {
+      padding: 10px;
+      margin-top: 10px;
       width: 100%;
-      padding: 1rem;
-      margin-top: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
     }
-    .msg {
-      margin-top: 1rem;
+    .success, .error {
+      margin-top: 15px;
       font-weight: bold;
+    }
+    .success {
       color: green;
+    }
+    .error {
+      color: red;
     }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>Digite o código de acesso:</h2>
-    <form id="authForm">
-      <input type="text" id="codigo" placeholder="Código de 6 dígitos" required />
-      <input type="submit" value="Entrar" />
-    </form>
-    <div class="msg" id="msg"></div>
-  </div>
+
+  <form id="authForm">
+    <h2>Verificação de Acesso</h2>
+    <input type="tel" id="phone" placeholder="Seu telefone com DDD" required>
+    <button type="submit">Validar</button>
+    <div id="response" class="success" style="display: none;"></div>
+    <div id="error" class="error" style="display: none;"></div>
+  </form>
 
   <script>
-    const form = document.getElementById("authForm");
-    const msg = document.getElementById("msg");
+    const form = document.getElementById('authForm');
+    const responseBox = document.getElementById('response');
+    const errorBox = document.getElementById('error');
 
-    form.addEventListener("submit", async (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const codigo = document.getElementById("codigo").value;
+      const phone = document.getElementById('phone').value;
 
-      const resposta = await fetch("https://hook.eu1.make.com/SEU_WEBHOOK_AQUI", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo })
-      });
+      try {
+        const res = await fetch("https://app.nicochat.com.br/api/iwh/3c1ffd767a8866f8ebfa4b4c363ecded", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ phone: phone })
+        });
 
-      const resultado = await resposta.json();
+        if (res.ok) {
+          responseBox.textContent = "Enviado com sucesso! Verifique seu WhatsApp.";
+          responseBox.style.display = "block";
+          errorBox.style.display = "none";
+        } else {
+          throw new Error("Falha ao autenticar.");
+        }
 
-      if (resultado.autenticado) {
-        msg.innerText = "✅ Código confirmado! Você pode voltar ao WhatsApp.";
-        msg.style.color = "green";
-      } else {
-        msg.innerText = "❌ Código inválido. Tente novamente.";
-        msg.style.color = "red";
+      } catch (err) {
+        errorBox.textContent = "Erro ao enviar. Tente novamente.";
+        errorBox.style.display = "block";
+        responseBox.style.display = "none";
       }
     });
   </script>
+
 </body>
 </html>
